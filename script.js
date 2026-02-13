@@ -188,29 +188,38 @@ function applySizes() {
 }
 function autoResize() {
   let dimension = window.innerWidth;
-  const padding = parseInt(getComputedStyle(document.body).paddingLeft) + parseInt(getComputedStyle(document.body).paddingRight);
-  
+  const padding =
+    parseInt(getComputedStyle(document.body).paddingLeft) +
+    parseInt(getComputedStyle(document.body).paddingRight);
+
   // 检测是否为全屏且是移动设备
-  const isFullscreen = !!document.fullscreenElement || !!document.webkitFullscreenElement || !!document.mozFullScreenElement || !!document.msFullscreenElement;
+  const isFullscreen =
+    !!document.fullscreenElement ||
+    !!document.webkitFullscreenElement ||
+    !!document.mozFullScreenElement ||
+    !!document.msFullscreenElement;
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
+
   // 在移动设备全屏模式下，使用高度来计算（因为会旋转90度）
   if (isFullscreen && isMobile) {
     dimension = window.innerHeight;
   }
-  
+
   let usable;
   if (isMobile && !isFullscreen) {
     // 移动设备非全屏模式，增加额外边距防止超出边框
     const extraMargin = 20; // 额外边距
-    usable = Math.max(280, Math.min(720, dimension - padding - extraMargin * 2));
+    usable = Math.max(
+      280,
+      Math.min(720, dimension - padding - extraMargin * 2)
+    );
   } else {
     usable = Math.max(320, Math.min(960, dimension - padding));
   }
-  
+
   const gap = Math.max(8, Math.round(keySize / 4));
   let size = Math.floor((usable - gap * 4) / 5);
-  
+
   // 为移动设备设置更小的最大琴键尺寸
   const maxSizeForMobile = 80;
   if (isMobile && !isFullscreen) {
@@ -218,7 +227,7 @@ function autoResize() {
   } else {
     size = Math.max(minSize, Math.min(maxSize, size));
   }
-  
+
   keySize = size;
   applySizes();
 }
@@ -313,10 +322,6 @@ function handleFullscreenChange() {
         card.style.width = '100vw';
         card.style.padding = '20px';
         card.style.boxSizing = 'border-box';
-
-        piano.style.transform = 'none';
-        piano.style.maxWidth = '100%';
-        piano.style.maxHeight = '100%';
       }
     } else {
       toggleFullscreenBtn.textContent = '全屏';
@@ -344,7 +349,7 @@ function handleFullscreenChange() {
 
     // 重新调整按键大小
     autoResize();
-  }, 100); // 延迟100ms确保全屏状态稳定
+  }, 100);
 }
 
 // 监听全屏状态变化
