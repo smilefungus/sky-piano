@@ -61,7 +61,6 @@ const keyMaps = {
     'C7',
     'D1'
   ],
-  // 简谱模式：①③②⑤⑦⑥④代表低音，❶❸❺❼❻❹❷代表高音
   sheet: [
     '①',
     '②',
@@ -78,13 +77,12 @@ const keyMaps = {
     '6',
     '7',
     '❶',
-    '❸',
-    '❺',
-    '❼',
-    '❻',
-    '❹',
     '❷',
-    '❸'
+    '❸',
+    '❹',
+    '❺',
+    '❻',
+    '❼'
   ]
 };
 
@@ -330,21 +328,29 @@ const pianoContainer = document.querySelector('.card');
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    // 进入全屏
+    // 进入全屏 - 处理浏览器兼容性
+    // 检查不同浏览器支持的全屏API方法
     if (pianoContainer.requestFullscreen) {
+      // 标准全屏API
       pianoContainer.requestFullscreen();
     } else if (pianoContainer.webkitRequestFullscreen) {
+      // WebKit浏览器（Chrome/Safari）全屏API
       pianoContainer.webkitRequestFullscreen();
     } else if (pianoContainer.msRequestFullscreen) {
+      // Microsoft浏览器（Edge/IE11）全屏API
       pianoContainer.msRequestFullscreen();
     }
   } else {
-    // 退出全屏
+    // 退出全屏 - 处理浏览器兼容性
+    // 检查不同浏览器支持的退出全屏API方法
     if (document.exitFullscreen) {
+      // 标准退出全屏API
       document.exitFullscreen();
     } else if (document.webkitExitFullscreen) {
+      // WebKit浏览器（Chrome/Safari）退出全屏API
       document.webkitExitFullscreen();
     } else if (document.msExitFullscreen) {
+      // Microsoft浏览器（Edge/IE11）退出全屏API
       document.msExitFullscreen();
     }
   }
