@@ -74,6 +74,7 @@ h1 {
   width: 100%;
   box-sizing: border-box;
 }
+
 .controls {
   position: fixed;
   top: 12px;
@@ -96,7 +97,9 @@ h1 {
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 .ctrlBtn:hover {
-  background: #ff69b4;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 3px 8px rgba(255, 20, 147, 0.2);
 }
 
 .piano {
@@ -223,7 +226,7 @@ h1 {
   font-weight: 700;
   letter-spacing: 0.4px;
   color: #0f172a;
-  font-size: 12px;
+  font-size: calc(var(--key-size) * 0.3);
 }
 .footer {
   margin-top: 16px;

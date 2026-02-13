@@ -23,23 +23,73 @@ const audioFiles = Array.from(
   { length: SLOTS },
   (_, i) => audioFilesRaw[i % audioFilesRaw.length]
 );
-const keyMap = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  'Q',
-  'W',
-  'E',
-  'R',
-  'T',
-  'A',
-  'S',
-  'D',
-  'F',
-  'G'
-];
+// 三种显示模式的映射
+const keyMaps = {
+  // 键盘按键模式
+  keyboard: [
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    'Q',
+    'W',
+    'E',
+    'R',
+    'T',
+    'A',
+    'S',
+    'D',
+    'F',
+    'G'
+  ],
+  // 音名模式
+  note: [
+    'B1',
+    'B2',
+    'B3',
+    'B4',
+    'B5',
+    'B6',
+    'B7',
+    'C1',
+    'C2',
+    'C3',
+    'C4',
+    'C5',
+    'C6',
+    'C7',
+    'D1'
+  ],
+  // 简谱模式：①③②⑤⑦⑥④代表低音，❶❸❺❼❻❹❷代表高音
+  sheet: [
+    '①',
+    '②',
+    '③',
+    '④',
+    '⑤',
+    '⑥',
+    '⑦',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '❶',
+    '❸',
+    '❺',
+    '❼',
+    '❻',
+    '❹',
+    '❷',
+    '❸'
+  ]
+};
+
+// 当前显示模式，默认为简谱模式
+let currentMode = 'sheet';
 
 const pianoEl = document.getElementById('piano');
 
@@ -106,9 +156,9 @@ function makeKey(index, key, file) {
   const btn = document.createElement('button');
   btn.className = 'key';
   btn.dataset.key = key;
+  btn.dataset.index = index;
   btn.dataset.src = audioDir + file;
-  btn.innerHTML = `<div class="label">${key}</div>`;
-  btn.title = file;
+  btn.innerHTML = `<div class="label">${keyMaps[currentMode][index]}</div>`;
 
   const down = async (e) => {
     e.preventDefault();
@@ -127,10 +177,42 @@ function makeKey(index, key, file) {
 }
 
 for (let i = 0; i < SLOTS; i++) {
-  const key = keyMap[i];
+  const key = keyMaps.keyboard[i];
   const file = audioFiles[i];
   pianoEl.appendChild(makeKey(i, key, file));
 }
+
+// 更新按键显示模式的函数
+function updateKeyDisplay(mode) {
+  currentMode = mode;
+  const keys = document.querySelectorAll('.key');
+  keys.forEach((key, index) => {
+    const label = key.querySelector('.label');
+    if (label) {
+      label.textContent = keyMaps[mode][index];
+    }
+  });
+}
+
+// 模式循环切换按钮事件监听
+const toggleKeyModeBtn = document.getElementById('toggleKeyMode');
+const modeCycle = ['sheet', 'keyboard', 'note'];
+const modeNames = { sheet: '简谱', keyboard: '键盘', note: '音名' };
+
+// 当前模式索引
+let currentModeIndex = 0;
+
+// 初始设置为简谱模式
+updateKeyDisplay(modeCycle[currentModeIndex]);
+toggleKeyModeBtn.textContent = modeNames[modeCycle[currentModeIndex]];
+
+toggleKeyModeBtn.addEventListener('click', () => {
+  // 循环切换模式
+  currentModeIndex = (currentModeIndex + 1) % modeCycle.length;
+  const newMode = modeCycle[currentModeIndex];
+  updateKeyDisplay(newMode);
+  toggleKeyModeBtn.textContent = modeNames[newMode];
+});
 
 // 键盘兼容（Edge/IME/布局），使用 e.code 优先
 function getKeyFromEvent(e) {
