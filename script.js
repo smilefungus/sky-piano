@@ -187,14 +187,38 @@ function applySizes() {
   document.documentElement.style.setProperty('--key-gap', gap + 'px');
 }
 function autoResize() {
-  const vw = window.innerWidth;
-  const padding =
-    parseInt(getComputedStyle(document.body).paddingLeft) +
-    parseInt(getComputedStyle(document.body).paddingRight);
-  const usable = Math.max(320, Math.min(960, vw - padding));
+  let dimension = window.innerWidth;
+  const padding = parseInt(getComputedStyle(document.body).paddingLeft) + parseInt(getComputedStyle(document.body).paddingRight);
+  
+  // 检测是否为全屏且是移动设备
+  const isFullscreen = !!document.fullscreenElement || !!document.webkitFullscreenElement || !!document.mozFullScreenElement || !!document.msFullscreenElement;
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
+  // 在移动设备全屏模式下，使用高度来计算（因为会旋转90度）
+  if (isFullscreen && isMobile) {
+    dimension = window.innerHeight;
+  }
+  
+  let usable;
+  if (isMobile && !isFullscreen) {
+    // 移动设备非全屏模式，增加额外边距防止超出边框
+    const extraMargin = 20; // 额外边距
+    usable = Math.max(280, Math.min(720, dimension - padding - extraMargin * 2));
+  } else {
+    usable = Math.max(320, Math.min(960, dimension - padding));
+  }
+  
   const gap = Math.max(8, Math.round(keySize / 4));
   let size = Math.floor((usable - gap * 4) / 5);
-  size = Math.max(minSize, Math.min(maxSize, size));
+  
+  // 为移动设备设置更小的最大琴键尺寸
+  const maxSizeForMobile = 80;
+  if (isMobile && !isFullscreen) {
+    size = Math.max(minSize, Math.min(maxSizeForMobile, size));
+  } else {
+    size = Math.max(minSize, Math.min(maxSize, size));
+  }
+  
   keySize = size;
   applySizes();
 }
@@ -207,7 +231,6 @@ zoomOutBtn.addEventListener('click', () => {
   applySizes();
 });
 window.addEventListener('resize', autoResize);
-window.addEventListener('orientationchange', autoResize);
 autoResize();
 
 // 全屏功能
@@ -236,85 +259,107 @@ function toggleFullscreen() {
   }
 }
 
+// 处理全屏状态变化的通用函数
+function handleFullscreenChange() {
+  const isFullscreen =
+    !!document.fullscreenElement ||
+    !!document.webkitFullscreenElement ||
+    !!document.mozFullScreenElement ||
+    !!document.msFullscreenElement;
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const piano = document.querySelector('.piano');
+  const card = document.querySelector('.card');
+
+  // 使用setTimeout确保全屏状态稳定后再应用样式
+  setTimeout(() => {
+    if (isFullscreen) {
+      toggleFullscreenBtn.textContent = '退出全屏';
+
+      // 在移动设备上直接设置旋转样式
+      if (isMobile) {
+        // 设置body和html样式
+        document.body.style.overflow = 'hidden';
+
+        // 设置card容器样式
+        card.style.display = 'flex';
+        card.style.alignItems = 'center';
+        card.style.justifyContent = 'center';
+        card.style.height = '100vh';
+        card.style.width = '100vw';
+        card.style.padding = '20px';
+        card.style.boxSizing = 'border-box';
+        card.style.overflow = 'hidden';
+
+        // 获取屏幕尺寸用于计算
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        // 设置钢琴旋转和尺寸
+        piano.style.transform = 'rotate(90deg)';
+        piano.style.transformOrigin = 'center center';
+        piano.style.maxWidth = `${screenHeight - 40}px`;
+        piano.style.maxHeight = `${screenWidth - 40}px`;
+        piano.style.width = 'auto';
+        piano.style.height = 'auto';
+        piano.style.margin = 'auto';
+      } else {
+        // 桌面端全屏样式
+        document.body.style.overflow = 'hidden';
+
+        card.style.display = 'flex';
+        card.style.alignItems = 'center';
+        card.style.justifyContent = 'center';
+        card.style.height = '100vh';
+        card.style.width = '100vw';
+        card.style.padding = '20px';
+        card.style.boxSizing = 'border-box';
+
+        piano.style.transform = 'none';
+        piano.style.maxWidth = '100%';
+        piano.style.maxHeight = '100%';
+      }
+    } else {
+      toggleFullscreenBtn.textContent = '全屏';
+
+      // 恢复原始样式
+      document.body.style.overflow = '';
+
+      card.style.display = '';
+      card.style.alignItems = '';
+      card.style.justifyContent = '';
+      card.style.height = '';
+      card.style.width = '';
+      card.style.padding = '';
+      card.style.boxSizing = '';
+      card.style.overflow = '';
+
+      piano.style.transform = '';
+      piano.style.transformOrigin = '';
+      piano.style.maxWidth = '';
+      piano.style.maxHeight = '';
+      piano.style.width = '';
+      piano.style.height = '';
+      piano.style.margin = '';
+    }
+
+    // 重新调整按键大小
+    autoResize();
+  }, 100); // 延迟100ms确保全屏状态稳定
+}
+
 // 监听全屏状态变化
-document.addEventListener('fullscreenchange', (e) => {
-  if (document.fullscreenElement) {
-    // 全屏模式下调整钢琴大小
-    toggleFullscreenBtn.textContent = '退出全屏';
-  } else {
-    // 退出全屏
-    toggleFullscreenBtn.textContent = '全屏';
-  }
-  // 重新调整按键大小
-  autoResize();
-});
+document.addEventListener('fullscreenchange', handleFullscreenChange);
 
 // 监听webkit全屏变化
-document.addEventListener('webkitfullscreenchange', (e) => {
-  if (document.webkitFullscreenElement) {
-    toggleFullscreenBtn.textContent = '退出全屏';
-  } else {
-    toggleFullscreenBtn.textContent = '全屏';
-  }
-  autoResize();
-});
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
 // 监听ms全屏变化
-document.addEventListener('MSFullscreenChange', (e) => {
-  if (document.msFullscreenElement) {
-    toggleFullscreenBtn.textContent = '退出全屏';
-  } else {
-    toggleFullscreenBtn.textContent = '全屏';
-  }
-  autoResize();
-});
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
 // 添加全屏按钮事件监听
 toggleFullscreenBtn.addEventListener('click', toggleFullscreen);
 
-// 横屏与音频解锁
-const overlay = document.getElementById('orientationOverlay');
-const tryBtn = document.getElementById('tryLandscape');
-const continueBtn = document.getElementById('continuePortrait');
-function isMobile() {
-  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-function shouldShowOverlay() {
-  const portrait = window.matchMedia('(orientation: portrait)').matches;
-  return isMobile() && portrait;
-}
-async function tryLockLandscape() {
-  try {
-    if (
-      document.documentElement.requestFullscreen &&
-      !document.fullscreenElement
-    ) {
-      await document.documentElement.requestFullscreen();
-    }
-    if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock('landscape');
-    }
-  } catch (e) {}
-}
-function hideOverlay() {
-  overlay.style.display = 'none';
-}
-function showOverlayIfNeeded() {
-  overlay.style.display = shouldShowOverlay() ? 'flex' : 'none';
-}
-tryBtn.addEventListener('click', async () => {
-  try {
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-  } catch {}
-  await tryLockLandscape();
-  hideOverlay();
-});
-continueBtn.addEventListener('click', () => {
-  try {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-  } catch {}
-  hideOverlay();
-});
+// 音频解锁
 window.addEventListener(
   'pointerdown',
   async () => {
@@ -324,7 +369,6 @@ window.addEventListener(
   },
   { once: true }
 );
-showOverlayIfNeeded();
 
 // ========= 简谱文本与自动演奏 =========
 const sheetText = document.getElementById('sheetText');
